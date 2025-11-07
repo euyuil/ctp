@@ -14,47 +14,58 @@ if(NOT CTP_VERSION IN_LIST CTP_AVAILABLE_VERSIONS)
 endif()
 
 # 检测平台
-if(WIN32)
-    set(CTP_PLATFORM "win64")
-    set(LIB_SUFFIX ".dll")
-elseif(APPLE)
+if(APPLE)
     message(FATAL_ERROR "CTP does not support macOS")
+elseif(WIN32)
+    # On Windows, detect whether we're targeting 32-bit or 64-bit by
+    # checking the pointer size. CMake defines CMAKE_SIZEOF_VOID_P as 8 for
+    # 64-bit and 4 for 32-bit builds.
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(CTP_PLATFORM "win64")
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(CTP_PLATFORM "win32")
+    else()
+        message(FATAL_ERROR "Unknown pointer size ${CMAKE_SIZEOF_VOID_P} — cannot determine Windows platform (win32/win64)")
+    endif()
 else()
     set(CTP_PLATFORM "linux64")
-    set(LIB_SUFFIX ".so")
 endif()
 
-set(CTP_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/versions/${CTP_VERSION}/${CTP_PLATFORM}")
+## Allow overriding the SDK base directory via cache (useful in CI or if SDK is outside repo)
+set(CTP_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/versions/${CTP_VERSION}/${CTP_PLATFORM}" CACHE PATH "CTP SDK base directory (e.g. D:/path/to/ctp/versions/${CTP_VERSION}/${CTP_PLATFORM})")
 
-# 检查文件是否存在
+# Basic sanity check: ensure base dir exists
 if(NOT EXISTS "${CTP_BASE_DIR}")
-    message(FATAL_ERROR "CTP ${CTP_VERSION} for ${CTP_PLATFORM} not found")
+    message(FATAL_ERROR "CTP base directory not found: ${CTP_BASE_DIR}\nPlease set -DCTP_BASE_DIR to point to your unpacked CTP SDK for version ${CTP_VERSION} and platform ${CTP_PLATFORM}.")
 endif()
 
 # 创建 INTERFACE library (header-only style)
 add_library(CTP::MdApi SHARED IMPORTED GLOBAL)
 add_library(CTP::TraderApi SHARED IMPORTED GLOBAL)
 
-# 设置 MdApi
-set_target_properties(CTP::MdApi PROPERTIES
-    IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthostmduserapi_se${LIB_SUFFIX}"
-    INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
-)
+# 设置 MdApi 和 TraderApi
+if(WIN32)
+    # On Windows with MSVC, the linker needs the import library (.lib).
+    # File names on Windows (no 'lib' prefix)
+    set_target_properties(CTP::MdApi PROPERTIES
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/thostmduserapi_se.dll"
+        IMPORTED_IMPLIB "${CTP_BASE_DIR}/lib/thostmduserapi_se.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
+    )
 
-# 设置 TraderApi
-set_target_properties(CTP::TraderApi PROPERTIES
-    IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthosttraderapi_se${LIB_SUFFIX}"
-    INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
-)
+    set_target_properties(CTP::TraderApi PROPERTIES
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/thosttraderapi_se.dll"
+        IMPORTED_IMPLIB "${CTP_BASE_DIR}/lib/thosttraderapi_se.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
+    )
+else()
+    set_target_properties(CTP::MdApi PROPERTIES
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthostmduserapi_se.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
+    )
 
-# 安装配置（如果需要install）
-install(TARGETS CTP::MdApi CTP::TraderApi
-    EXPORT CTPTargets
-)
-
-# Export配置
-install(EXPORT CTPTargets
-    FILE CTPTargets.cmake
-    NAMESPACE CTP::
-    DESTINATION lib/cmake/CTP
-)
+    set_target_properties(CTP::TraderApi PROPERTIES
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthosttraderapi_se.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
+    )
+endif()

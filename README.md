@@ -29,6 +29,20 @@ add_subdirectory(third_party/ctp)
 target_link_libraries(your_app PRIVATE CTP::MdApi CTP::TraderApi)
 ```
 
+### Platform & SDK location
+
+- Windows 32-bit is supported. On Windows CMake will detect 32/64-bit targets automatically and set the CTP platform to `win32` or `win64` based on the CMake pointer size.
+- Override the SDK location when configuring CMake, for example:
+
+  ```powershell
+  cmake -S . -B build -DCTP_BASE_DIR="D:/path/to/ctp/versions/6.7.10/win32"
+  ```
+
+**Notes**:
+
+- For Visual Studio, use `-A Win32` / `-A x64` to select the generator architecture explicitly.
+- If CMake cannot find the specified `CTP_BASE_DIR`, configuration will fail with an explanatory message.
+
 ## Versions
 
 - v6.7.10 (2025-04-22)

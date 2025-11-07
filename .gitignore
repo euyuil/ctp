@@ -1,0 +1,39 @@
+# Build artifacts
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/CMakeLists.txt.user
+
+# Visual Studio
+*.sln
+*.vcxproj*
+*.user
+*.opensdf
+*.sdf
+
+# Compiled object files
+*.o
+*.obj
+
+# Libraries and binaries
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Editor files
+.vscode/
+*.code-workspace
+
+# Mac and system files
+.DS_Store
+Thumbs.db
+
+# Keep SDK sources/headers (versions/) but ignore SDK build outputs if any
+/versions/*/lib/
+
+# Logs
+*.log
