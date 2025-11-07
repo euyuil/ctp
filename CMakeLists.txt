@@ -60,12 +60,12 @@ if(WIN32)
     )
 else()
     set_target_properties(CTP::MdApi PROPERTIES
-        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthostmduserapi_se.so"
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/thostmduserapi_se.so"
         INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
     )
 
     set_target_properties(CTP::TraderApi PROPERTIES
-        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/libthosttraderapi_se.so"
+        IMPORTED_LOCATION "${CTP_BASE_DIR}/lib/thosttraderapi_se.so"
         INTERFACE_INCLUDE_DIRECTORIES "${CTP_BASE_DIR}/include"
     )
 endif()
