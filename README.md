@@ -8,14 +8,23 @@ Unofficial binary distribution of CTP (Comprehensive Transaction Platform) SDK f
 
 ```cmake
 include(FetchContent)
+
+# Optional: Specify CTP version (defaults to 6.7.10)
+set(CTP_VERSION "6.7.10")
+
 FetchContent_Declare(
     ctp
     GIT_REPOSITORY https://github.com/euyuil/ctp.git
-    GIT_TAG v6.7.10
+    GIT_TAG main
 )
 FetchContent_MakeAvailable(ctp)
 
 target_link_libraries(your_app PRIVATE CTP::MdApi CTP::TraderApi)
+```
+
+**Specify version via command line:**
+```bash
+cmake -S . -B build -DCTP_VERSION="6.7.10"
 ```
 
 ### Method 2: Git Submodule
@@ -25,8 +34,16 @@ git submodule add https://github.com/euyuil/ctp.git third_party/ctp
 ```
 
 ```cmake
+# Optional: Specify CTP version (defaults to 6.7.10)
+set(CTP_VERSION "6.7.10")
+
 add_subdirectory(third_party/ctp)
 target_link_libraries(your_app PRIVATE CTP::MdApi CTP::TraderApi)
+```
+
+**Specify version via command line:**
+```bash
+cmake -S . -B build -DCTP_VERSION="6.7.10"
 ```
 
 ### Platform & SDK location
